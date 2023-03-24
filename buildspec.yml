@@ -1,0 +1,27 @@
+version: 0.2   
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.8 #it will install python 3.8 on the server
+  pre_build:
+    commands:
+      - echo checking the python version
+      - python3 --version
+      - echo installing CFN-LINT...
+      - pip install cfn-lint
+      - echo checking the CFN-LINT version
+      - cfn-lint --version
+  build:
+    commands:
+      - echo ****** TESTING OUR TEMPLATE ****** 
+      - cfn-lint cheetah-network-template.yaml
+      - echo ****** Build cloudformation template started on `date` ******
+      - aws cloudformation package --template-file cheetah-network-template.yaml --s3-bucket cheetah.nasfinancialgroup.com  --output-template-file outputTemplate.yaml 
+  post_build:
+    commands:
+      - echo Build completed on `date`
+artifacts:
+  files:
+    - cheetah-network-template.yaml
+    - outputTemplate.yaml
