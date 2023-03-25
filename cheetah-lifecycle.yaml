@@ -4,7 +4,7 @@ Resources:
   # S3 bucket for clients
   NASFinancialClientsS3Bucket:
     Type: 'AWS::S3::Bucket'
-    Description: S3 bucket with default encryption
+    # Description: #S3 bucket with default encryption
     Properties:
       BucketName: clients.privdata.bucket
       AccessControl: Private
