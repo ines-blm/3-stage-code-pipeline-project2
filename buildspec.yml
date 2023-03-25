@@ -25,11 +25,14 @@ phases:
       - echo Build completed on `date`
 artifacts:
   files:
-    - cheetah-network-template.yaml
     - outputTemplate.yaml
   discard-paths: yes
   secondary-artifacts:
     artifact1:
       files:  
         - cheetah-lifecycle.yaml
+      discard-paths: yes  
+    artifact2:
+      files: 
+        - cheetah-network-template.yaml
       discard-paths: yes  
