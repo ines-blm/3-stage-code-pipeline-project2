@@ -1,11 +1,11 @@
 Description: Provisions an s3 bucket with life cycle configuration and bucket encryption by default
 Resources:
   # S3 bucket for clients
-  NAS-Financial-ClientsS3Bucket:
+  NASFinancialClientsS3Bucket:
     Type: 'AWS::S3::Bucket'
     Description: S3 bucket with default encryption
     Properties:
-      BucketName:  NAS-clients-priv-data-bucket
+      BucketName:  NASclients-priv-data-bucket
       AccessControl: Private
       LifecycleConfiguration:
         Rules:
