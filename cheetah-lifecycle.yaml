@@ -1,3 +1,4 @@
+AWSTemplateFormatVersion: 2010-09-09
 Description: Provisions an s3 bucket with life cycle configuration and bucket encryption by default
 Resources:
   # S3 bucket for clients
