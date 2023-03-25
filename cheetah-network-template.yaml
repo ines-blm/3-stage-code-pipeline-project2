@@ -13,7 +13,10 @@ Parameters:
     MaxLength: '41'
     ConstraintDescription: the password must be between 1 and 41 characters
     Default: 'Cheetah123'
-    
+
+  TrustedAccountId:
+    Type: String
+
 # Project2 network template
 Resources:
 # VPC
@@ -370,6 +373,58 @@ Resources:
     Properties: 
       UserName: !Ref 'Users5'
 
+  IAMManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: IAM role Managed Policy
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Action:
+            - iam:trustedadvisor
+          Resource: "*"
+  IAMRole:
+    Type: 'AWS::IAM::Role'
+    DependsOn:
+      - IAMManagedPolicy
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${TrustedAccountId}:user/admin'
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::362013628963:policy/cross-account
+      Tags:
+        - Key: Name
+          Value: TrustAccess
+
+  NASFinancialClientsS3Bucket:
+    Type: 'AWS::S3::Bucket'
+    # Description: #S3 bucket with default encryption
+    Properties:
+      BucketName: clients.privdata.bucket
+      AccessControl: Private
+      LifecycleConfiguration:
+        Rules:
+          - Id: GlacierRule
+            Prefix: glacier
+            Status: Enabled
+            ExpirationInDays: '1825'
+            Transitions:
+              - TransitionInDays: 30
+                StorageClass: GLACIER
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: 'aws:kms'
+              KMSMasterKeyID: KMS-KEY-ARN
+    DeletionPolicy: Delete
+    
 Outputs:
   VPCId:
     Description: VPC ID
