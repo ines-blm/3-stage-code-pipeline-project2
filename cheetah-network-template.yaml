@@ -36,7 +36,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: 10.0.0.0/18
-      # AvailabilityZone: "eu-west-2a"
+      AvailabilityZone: "eu-west-2b"
       Tags:
       - Key: Name
         Value: Public-1
@@ -46,7 +46,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: 10.0.64.0/18
-      # AvailabilityZone: "eu-west-2b"
+      AvailabilityZone: "eu-west-2c"
       Tags:
       - Key: Name
         Value: Public-2
