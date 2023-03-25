@@ -50,7 +50,7 @@ Resources:
       VpcId: !Ref VPC
       CidrBlock: 10.0.64.0/18
       AvailabilityZone: !Select 
-        - 0
+        - 1
         - !GetAZs 
           Ref: 'AWS::Region'
       Tags:
