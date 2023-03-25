@@ -6,7 +6,7 @@ Resources:
     Type: 'AWS::S3::Bucket'
     Description: S3 bucket with default encryption
     Properties:
-      BucketName:  NASclients-priv-data-bucket
+      BucketName: clients.privdata.bucket
       AccessControl: Private
       LifecycleConfiguration:
         Rules:
