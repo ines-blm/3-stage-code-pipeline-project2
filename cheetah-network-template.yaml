@@ -16,7 +16,7 @@ Parameters:
 
   TrustedAccountId:
     Type: String
-
+    Default: 249990965851
 # Project2 network template
 Resources:
 # VPC
@@ -424,7 +424,7 @@ Resources:
               SSEAlgorithm: 'aws:kms'
               KMSMasterKeyID: KMS-KEY-ARN
     DeletionPolicy: Delete
-    
+
 Outputs:
   VPCId:
     Description: VPC ID
