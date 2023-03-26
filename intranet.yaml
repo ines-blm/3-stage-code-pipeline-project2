@@ -324,7 +324,7 @@ Resources:
       InstanceType: t2.micro
       SecurityGroups:
       - !Ref WebServerSecurityGroup1
-      ImageId: ami-0ad97c80f2dfe623b
+      ImageId: ami-06f737d805edd92fb
       # UserData:
       #   Fn::Base64: !Sub |
       #     #!/bin/bash -xe

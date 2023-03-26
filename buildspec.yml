@@ -34,4 +34,4 @@ artifacts:
     - output1Template.yaml
     - output2Template.yaml
     - output3Template.yaml
-    - CheetahCloudwatch.yaml
+    
