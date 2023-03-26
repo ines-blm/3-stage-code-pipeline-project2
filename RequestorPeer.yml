@@ -12,11 +12,10 @@ Resources:
       PeerVpcId: 'vpc-005ef9d7760394a9a'  # THE ID OF THE VPC TO PEER WITH
       Tags:
       - Key: Name
-        Value: !Sub "${EnvironmentName}-Vpc-peering"
+        Value: cheetah-Vpc-peering"
 
   PeeringRoute:
     Type: AWS::EC2::Route
-    DependsOn: VPCPeeringRequest
     Properties:
       RouteTableId: !ImportValue app-test-stack-PrivateRouteTableID
       DestinationCidrBlock: 10.0.0.0/16        #the cidir block of the vpc of the acceptor
@@ -28,6 +27,7 @@ Outputs:
   VPCPeeringRequestID:      # This logical name must be unique within the template.
     Description: The ID of the peering connection
     Value: !GetAtt VPCPeeringRequest.Id
+    
     
 
 
