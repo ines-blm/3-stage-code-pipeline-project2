@@ -1,0 +1,39 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "AWS CloudTrail API Activity Alarm Template for CloudWatch Logs"
+Parameters:
+
+  TopicName:
+    Type: String
+    Description:  Topic Name
+    Default: my-topic
+
+Resources:
+  CPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: CPU alarm for my instance
+      AlarmActions:
+      - Ref: MySNSTopic  #"logical name of an AWS::SNS::Topic resource"
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: '60'
+      EvaluationPeriods: '3'
+      Threshold: '90'
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value: Public Website
+       
+  MySNSTopic:
+    Type: "AWS::SNS::Topic"
+    Properties: 
+      Subscription: 
+        - Endpoint: "info@CloudSpaceAcademy.com"
+          Protocol: "email"
+      TopicName: !Ref TopicName
+
+Outputs: 
+  MyTopicArn: 
+    Description: Arn of Created SNS Topic
+    Value: !Ref MySNSTopic      

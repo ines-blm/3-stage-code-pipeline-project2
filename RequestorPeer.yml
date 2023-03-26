@@ -9,7 +9,7 @@ Resources:
     Properties:
       PeerRegion: "us-east-1"            # REGION WHERE THE ACCEPTER-VPC IS CREATED
       VpcId: !ImportValue app-test-stack-VPCID
-      PeerVpcId: 'vpc-005ef9d7760394a9a'  # THE ID OF THE VPC TO PEER WITH
+      PeerVpcId: 'vpc-0a1d01f338ca729d8'  # THE ID OF THE VPC TO PEER WITH
       Tags:
       - Key: Name
         Value: cheetah-Vpc-peering"
