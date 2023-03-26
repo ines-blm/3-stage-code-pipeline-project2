@@ -1,0 +1,393 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  AWS CloudFormation Sample Template VPC_with_PublicIPs_And_DNS: Sample template
+  that creates a VPC with DNS and public IPs enabled. Note that you are billed
+  for the AWS resources that you use when you create a stack from this template.
+Parameters:
+  DBMasterpassword: 
+    NoEcho: true
+    Description: The database passwordname
+    Type: String
+    MinLength: 1
+    MaxLength: 20
+    AllowedPattern: ^[a-zA-Z0-9]*$
+    Default: cheetah123
+#   DBName: 
+#     NoEcho: true
+#     Description: The database name
+#     Type: String
+#     MinLength: 1
+#     MaxLength: 41
+#     AllowedPattern: ^[a-zA-Z0-9]*$
+#     Default: cheetah
+  # DBMasterUsername:
+  #   NoEcho: true
+  #   Description: The database username
+  #   Type: String
+  #   MinLength: 1
+  #   MaxLength: 41
+  #   AllowedPattern: ^[a-zA-Z0-9]*$
+  #   Default: admin
+  # LatestAmazonLinuxAmiId:
+  #   Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+  #   Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+  # VpcId:
+  #   Type: 'AWS::EC2::VPC::Id'
+  #   Description: VpcId of your existing Virtual Private Cloud (VPC)
+  #   ConstraintDescription: must be the VPC Id of an existing Virtual Private Cloud.
+  # Subnets:
+  #   Type: 'List<AWS::EC2::Subnet::Id>'
+  #   Description: The list of SubnetIds in your Virtual Private Cloud (VPC)
+  #   ConstraintDescription: >-
+  #     must be a list of at least two existing subnets associated with at least
+  #     two different availability zones. They should be residing in the selected
+  #     Virtual Private Cloud.
+  # SubnetsDB:
+  #   Type: 'List<AWS::EC2::Subnet::Id>'
+  #   Description: The list of SubnetIds in your Virtual Private Cloud (VPC)
+  #   ConstraintDescription: >-
+  #     must be a list of at least two existing subnets associated with at least
+  #     two different availability zones. They should be residing in the selected
+  #     Virtual Private Cloud.
+
+Resources:
+  WebServerSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable HTTP ingress
+      VpcId: !ImportValue app-test-stack-VPCID
+      # SecurityGroupIngress1:
+      #   - IpProtocol: tcp
+      #     FromPort: '80'
+      #     ToPort: '80'
+      #     CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '3389'
+          ToPort: '3389'
+          CidrIp: 0.0.0.0/0
+  
+  WindowsInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0ad97c80f2dfe623b
+      KeyName: cheetah-ec2keypair
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: 'true'
+          DeviceIndex: '0'
+          GroupSet:
+            - Ref: 'WebServerSecurityGroup'
+          SubnetId:
+            !ImportValue app-test-stack-Pub1SubnetID
+      Tags:
+        - Key: Name
+          Value: Windows-EC2
+  PrivateServerSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: All traffic to CIDR
+      VpcId: !ImportValue app-test-stack-VPCID
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          FromPort: '0'
+          ToPort: '65535'
+          CidrIp: 10.0.0.0/16
+      
+  PrivateInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0ad97c80f2dfe623b
+      KeyName: cheetah-ec2keypair
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: 'False'
+          DeviceIndex: '0'
+          GroupSet:
+            - Ref: 'PrivateServerSecurityGroup'
+          SubnetId:
+            !ImportValue app-test-stack-Priv1SubnetID
+      # UserData: 
+      #   Fn::Base64: !Sub |
+      #     #!/bin/bash -xe
+      #     sudo yum update -y 
+      #     sudo yum install -y httpd
+      #     sudo systemctl start httpd
+      #     sudo systemctl enable httpd
+      #     sudo systemctl is-enabled httpd
+      #     sudo usermod -a -G apache ec2-user
+      #     groups ec2-user
+      #     sudo chown -R ec2-user:apache /var/www
+      #     sudo chmod 2775 /var/www && find /var/www -type d -exec sudo chmod 2775 {} \;
+      #     find /var/www -type f -exec sudo chmod 0664 {} \;
+      #     cd /var/www/html/
+      #     wget https://wordpress.org/latest.tar.gz
+      #     tar -xzf latest.tar.gz
+      #     mv  -v wordpress/* /var/www/html/
+      #     sudo chown -R apache:apache /var/www/html
+      Tags:
+        - Key: Name
+          Value: PrivateWordpress
+
+  DBSubnetGroup:
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties:
+      DBSubnetGroupDescription: "Subnet Group"
+      DBSubnetGroupName: DBSubnetGroup
+      SubnetIds: 
+        - !ImportValue app-test-stack-Priv1SubnetID
+        - !ImportValue app-test-stack-Priv2SubnetID
+  DBEC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Open database for access
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !GetAtt WebServerSecurityGroup.GroupId
+      Tags:
+        - Key: Name
+          Value: WordPress-DB
+      VpcId: !ImportValue app-test-stack-VPCID 
+# DB instance
+  DBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBName: cheetah      #!Ref DBName
+      Engine: MySQL
+      DBInstanceClass: db.t2.micro
+      BackupRetentionPeriod: 0
+      AllocatedStorage: 20
+      MultiAZ: True
+      MasterUsername: admin #!Ref DBUser
+      MasterUserPassword: !Ref DBMasterpassword                                #!Ref DBMasterpassword
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VPCSecurityGroups: 
+        - !GetAtt "DBEC2SecurityGroup.GroupId"    
+  ALBSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+        GroupDescription: "security group for ALB"
+        GroupName: "test-ALB-SG"
+        Tags: 
+          - 
+            Key: "Project"
+            Value: "test-blog"
+          - 
+            Key: "createdBy"
+            Value: "Maureen Barasa"
+          - 
+            Key: "Environment"
+            Value: "test"
+          - 
+            Key: "Name"
+            Value: "test-ALB-SG"
+        VpcId: !ImportValue app-test-stack-VPCID
+        SecurityGroupIngress: 
+          - 
+            CidrIp: "0.0.0.0/0"
+            FromPort: 80
+            IpProtocol: "tcp"
+            ToPort: 80
+          - 
+            CidrIp: "0.0.0.0/0"
+            FromPort: 443
+            IpProtocol: "tcp"
+            ToPort: 443
+  WebServerSecurityGroup1:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable HTTP ingress
+      VpcId: !ImportValue app-test-stack-VPCID
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+  Test2TargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+        HealthCheckIntervalSeconds: 30
+        HealthCheckPath: "/"
+        Port: 80
+        Protocol: "HTTP"
+        HealthCheckPort: "traffic-port"
+        HealthCheckProtocol: "HTTP"
+        HealthCheckTimeoutSeconds: 5
+        UnhealthyThresholdCount: 2
+        TargetType: "instance"
+        Matcher: 
+            HttpCode: "200"
+        HealthyThresholdCount: 5
+        VpcId: !ImportValue app-test-stack-VPCID
+        Name: "ELB-TARGET"
+        HealthCheckEnabled: true
+        TargetGroupAttributes: 
+          - 
+            Key: "stickiness.enabled"
+            Value: "false"
+          - 
+            Key: "deregistration_delay.timeout_seconds"
+            Value: "300"
+          - 
+            Key: "stickiness.type"
+            Value: "lb_cookie"
+          - 
+            Key: "stickiness.lb_cookie.duration_seconds"
+            Value: "86400"
+          - 
+            Key: "slow_start.duration_seconds"
+            Value: "0"
+          - 
+            Key: "load_balancing.algorithm.type"
+            Value: "round_robin"
+   
+  ApplicationLoadBalancer:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+        Name: "test-Application-Load-Balancer"
+        Scheme: "internet-facing"
+        Type: "application"
+        Subnets:    
+          - !ImportValue app-test-stack-Pub1SubnetID #!Ref Subnets
+          - !ImportValue app-test-stack-Pub2SubnetID
+        SecurityGroups: 
+          - !Ref ALBSecurityGroup
+        IpAddressType: "ipv4"
+        LoadBalancerAttributes: 
+          - 
+            Key: "access_logs.s3.enabled"
+            Value: "false"
+          - 
+            Key: "idle_timeout.timeout_seconds"
+            Value: "60"
+          - 
+            Key: "deletion_protection.enabled"
+            Value: "false"
+          - 
+            Key: "routing.http2.enabled"
+            Value: "true"
+          - 
+            Key: "routing.http.drop_invalid_header_fields.enabled"
+            Value: "false"
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn:
+            Ref: Test2TargetGroup
+      LoadBalancerArn:
+          Ref: ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+  # HTTPSListener:
+  #   Type: "AWS::ElasticLoadBalancingV2::Listener"
+  #   Properties:
+  #     DefaultActions:
+  #       - Type: forward
+  #         TargetGroupArn:
+  #           Ref: Test2TargetGroup
+  #     LoadBalancerArn:
+  #         Ref: ApplicationLoadBalancer
+  #     Port: 443
+  #     Protocol: HTTPS
+  #     SslPolicy: "ELBSecurityPolicy-2016-08"
+  #     Certificates: 
+  #       - CertificateArn: arn:aws:acm:eu-west-2:362013628963:certificate/20553cff-9a0a-41a6-bff0-2be2c788b638
+        # LoadBalancerArn: !Ref ApplicationLoadBalancer
+        # Port: 443
+        # Protocol: "HTTPS"
+        # SslPolicy: "ELBSecurityPolicy-2016-08"
+        # Certificates: 
+        #   - CertificateArn: arn:aws:acm:us-west-1:249990965851:certificate/4b80f809-3e88-4399-b74f-59cdaf1d028f
+                
+        # DefaultActions: 
+        #   - Order: 1
+        #     TargetGroupArn: !Ref Test2TargetGroup
+        #     Type: "forward"
+  MyLaunchconfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      AssociatePublicIpAddress: True
+      InstanceType: t2.micro
+      SecurityGroups:
+      - !Ref WebServerSecurityGroup1
+      ImageId: ami-0ad97c80f2dfe623b
+      # UserData:
+      #   Fn::Base64: !Sub |
+      #     #!/bin/bash -xe
+      #     sudo yum update -y
+      #     sudo amazon-linux-extras install -y php7.4 
+      #     sudo yum install -y httpd
+      #     sudo systemctl start httpd
+      #     sudo systemctl enable httpd
+      #     sudo systemctl is-enabled httpd
+      #     sudo usermod -a -G apache ec2-user
+      #     groups ec2-user
+      #     sudo chown -R ec2-user:apache /var/www
+      #     sudo chmod 2775 /var/www && find /var/www -type d -exec sudo chmod 2775 {} \;
+      #     find /var/www -type f -exec sudo chmod 0664 {} \;
+      #     d /var/www/html/
+      #     wget https://wordpress.org/latest.tar.gz
+      #     tar -xzf latest.tar.gz
+      #     mv  -v wordpress/* /var/www/html/
+      #     sudo chown -R apache:apache /var/www/html
+  AsgGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    # DependsOn:
+      # - Test2TargetGroup
+      # - ApplicationLoadBalancer
+    Properties:
+      VPCZoneIdentifier: 
+        - !ImportValue app-test-stack-Pub1SubnetID
+        - !ImportValue app-test-stack-Pub2SubnetID
+      LaunchConfigurationName: !Ref MyLaunchconfig
+      MinSize: '1'
+      MaxSize: '3'
+      HealthCheckGracePeriod: 300
+      MaxInstanceLifetime: 2592000
+      TargetGroupARNs:
+        - !Ref Test2TargetGroup
+  MyHostedZone:
+    Type: AWS::Route53::HostedZone
+    Properties:
+      Name: cheetah.nasfinancialgroup.com
+      HostedZoneConfig:
+        Comment: My hosted zone
+  GeoRoutingPolicy:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      Comment: Geolocation routing policy for mydomain
+      HostedZoneId: Z02977061XS8TGAVCL9CA
+      RecordSets:
+      - AliasTarget:
+          DNSName: !GetAtt 'ApplicationLoadBalancer.DNSName'
+          HostedZoneId: !GetAtt 'ApplicationLoadBalancer.CanonicalHostedZoneID'
+        SetIdentifier: Frontend Two
+        Name: cheetah.nasfinancialgroup.com
+        Type: A
+        GeoLocation:
+          CountryCode: US
+      - AliasTarget:
+          DNSName: cheetah.nasfinancialgroup.com.s3-website.eu-west-2.amazonaws.com
+          HostedZoneId: Z3GKZC51ZF0DB4
+        SetIdentifier: Frontend One
+        Name: cheetah.nasfinancialgroup.com
+        Type: A
+        GeoLocation:
+          CountryCode: '*'
+
+
+#peering
