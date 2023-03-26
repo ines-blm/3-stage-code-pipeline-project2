@@ -1,0 +1,34 @@
+
+
+Resources:
+  # For VPC peering connection where the VPCs are in different Regions, 
+  # the request must be made from the Region of the requester VPC.
+
+  VPCPeeringRequest:                      # PEERING TWO VPCs IN THE SAME REGION
+    Type: AWS::EC2::VPCPeeringConnection
+    Properties:
+      PeerRegion: "us-east-1"            # REGION WHERE THE ACCEPTER-VPC IS CREATED
+      VpcId: !ImportValue app-test-stack-VPCID
+      PeerVpcId: 'vpc-005ef9d7760394a9a'  # THE ID OF THE VPC TO PEER WITH
+      Tags:
+      - Key: Name
+        Value: !Sub "${EnvironmentName}-Vpc-peering"
+
+  PeeringRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VPCPeeringRequest
+    Properties:
+      RouteTableId: !ImportValue app-test-stack-PrivateRouteTableID
+      DestinationCidrBlock: 10.0.0.0/16        #the cidir block of the vpc of the acceptor
+      VpcPeeringConnectionId: !Ref VPCPeeringRequest
+
+Outputs:
+  
+
+  VPCPeeringRequestID:      # This logical name must be unique within the template.
+    Description: The ID of the peering connection
+    Value: !GetAtt VPCPeeringRequest.Id
+    
+
+
+

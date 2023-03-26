@@ -15,18 +15,21 @@ phases:
   build:
     commands:
       - echo ****** TESTING OUR TEMPLATE ****** 
-      - cfn-lint cheetah-network-template.yaml  intranet.yaml
+      - cfn-lint cheetah-network-template.yaml  intranet.yaml RequestorPeer.yml
       - echo ****** Build cloudformation template started on `date` ******
       - aws cloudformation package --template-file cheetah-network-template.yaml --s3-bucket cheetah.nasfinancialgroup.com  --output-template-file outputTemplate.yaml 
       - aws cloudformation package --template-file intranet.yaml --s3-bucket cheetah.nasfinancialgroup.com  --output-template-file output1Template.yaml
+      - aws cloudformation package --template-file RequestorPeer.yml --s3-bucket cheetah.nasfinancialgroup.com  --output-template-file output2Template.yaml
   post_build:
     commands:
       - echo Build completed on `date`
 artifacts:
   files:
     - intranet.yaml
+    - RequestorPeer.yml
     - cheetah-network-template.yaml
     - outputTemplate.yaml
     - output1Template.yaml
+    - output2Template.yaml
 
    
