@@ -20,6 +20,6 @@ Resources:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
-              SSEAlgorithm: 'aws:kms'
+              SSEAlgorithm: "aws:kms"
               KMSMasterKeyID: KMS-KEY-ARN
     DeletionPolicy: Delete
