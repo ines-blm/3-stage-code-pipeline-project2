@@ -23,7 +23,7 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       Dimensions:
       - Name: InstanceId
-        Value: Public Website
+        Value: cheetah-wordpress
        
   MySNSTopic:
     Type: "AWS::SNS::Topic"
