@@ -103,7 +103,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
-      ImageId: ami-0ad97c80f2dfe623b
+      ImageId: ami-06894ac07951768af
       KeyName: cheetah-ec2keypair
       NetworkInterfaces:
         - AssociatePublicIpAddress: 'False'
@@ -142,7 +142,7 @@ Resources:
       SubnetIds: 
         - !ImportValue app-test-stack-Priv1SubnetID
         - !ImportValue app-test-stack-Priv2SubnetID
-  DBEC2SecurityGroup:
+  DBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Open database for access
@@ -200,7 +200,7 @@ Resources:
             FromPort: 443
             IpProtocol: "tcp"
             ToPort: 443
-  WebServerSecurityGroup1:
+  ServerSecurityGroup1:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
       GroupDescription: Enable HTTP ingress
@@ -323,7 +323,7 @@ Resources:
       AssociatePublicIpAddress: True
       InstanceType: t2.micro
       SecurityGroups:
-      - !Ref WebServerSecurityGroup1
+      - !Ref ServerSecurityGroup1
       ImageId: ami-06f737d805edd92fb
       # UserData:
       #   Fn::Base64: !Sub |
