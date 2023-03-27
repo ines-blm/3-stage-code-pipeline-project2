@@ -354,7 +354,7 @@ Resources:
         - !ImportValue app-test-stack-Pub1SubnetID
         - !ImportValue app-test-stack-Pub2SubnetID
       LaunchConfigurationName: !Ref MyLaunchconfig
-      MinSize: '1'
+      MinSize: '3'
       MaxSize: '3'
       HealthCheckGracePeriod: 300
       MaxInstanceLifetime: 2592000
