@@ -360,6 +360,11 @@ Resources:
       MaxInstanceLifetime: 2592000
       TargetGroupARNs:
         - !Ref Test2TargetGroup
+      Tags:
+        - Key: Name
+          Value: cheetah-wordpress
+          PropagateAtLaunch: true
+        
   MyHostedZone:
     Type: AWS::Route53::HostedZone
     Properties:
