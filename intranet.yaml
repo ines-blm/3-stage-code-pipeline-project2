@@ -386,7 +386,7 @@ Resources:
         GeoLocation:
           CountryCode: US
       - AliasTarget:
-          DNSName: cheetah.nasfinancialgroup.com.s3-website.eu-west-2.amazonaws.com
+          DNSName: s3-website.eu-west-2.amazonaws.com
           HostedZoneId: Z3GKZC51ZF0DB4
         SetIdentifier: Frontend One
         Name: cheetah.nasfinancialgroup.com
