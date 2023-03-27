@@ -76,8 +76,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
-      ImageId: ami-0ad97c80f2dfe623b
-      KeyName: cheetah-ec2keypair
+      ImageId: ami-073bb7464cc51df7c
       NetworkInterfaces:
         - AssociatePublicIpAddress: 'true'
           DeviceIndex: '0'
