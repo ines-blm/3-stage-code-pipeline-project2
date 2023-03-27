@@ -169,7 +169,7 @@ Resources:
       MasterUserPassword: !Ref DBMasterpassword                                #!Ref DBMasterpassword
       DBSubnetGroupName: !Ref DBSubnetGroup
       VPCSecurityGroups: 
-        - !GetAtt "DBEC2SecurityGroup.GroupId"    
+        - !GetAtt "DBSecurityGroup.GroupId"    
   ALBSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
